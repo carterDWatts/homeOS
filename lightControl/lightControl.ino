@@ -3,93 +3,68 @@
 #include <Update.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-
-#include <Adafruit_Sensor.h>
-#include <DHT.h>
-#include <SPI.h>
-#include "Adafruit_MAX31855.h"
-
 #include <EEPROM.h>
-
-//TODO: make method that removes spaces from msg and places %20 in place, set blink status led to switch case and document cases,
-//      add timer to count time leds shut off from heat
+#include <FastLED.h>
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
-  String fanNum = "";
-  String location = "";
-  const String VERSION = "0.7.3.2";
+  String lightNum = "";
+  const String VERSION = "0.8";
+  const int ledDataPin = 5;
   const int statusLed = 2;
 
   DynamicJsonDocument doc(1024);
 
-//LEDS (UVC)
-  boolean ledsPowered = true;
-  boolean ledsPoweredLast = false;
-  const int ledSwitch = 13;
+//LEDS
+  int ledsPowered = 1;  
+  #define LED_PIN     13
+  #define NUM_LEDS    79
+  int BRIGHTNESS = 65;
+  #define LED_TYPE    WS2811
+  #define COLOR_ORDER GRB
+  CRGB leds[NUM_LEDS];
+
+  #define UPDATES_PER_SECOND 30
   
-  const double MS_IN_HOURS = 3600000;
-  double hoursRunning = 0;
-  double timePassed  = 0;
-  double lastTimeRunning;
-       
+  CRGBPalette16 currentPalette;
+  TBlendType    currentBlending;
+  
+  extern CRGBPalette16 myRedWhiteBluePalette;
+  extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+  unsigned long prevMillis;
+  String currentP;
 //WiFi  
   WiFiClient client;
   String ssid = "";
   String password = "";  
   
-  String host = "carterwatts.xyz"; //TODO:update to new website when up
-  
-  int port = 3000;//80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
-  String bin = "/connectedSoulis.ino.esp32.bin"; // bin file name with a slash in front.
+  String host = "carterwatts.xyz"; //TODO:update to new website when up  
+  int port = 3000;//80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.  
+  String bin = "/lightControl.ino.esp32.bin"; // bin file name with a slash in front.
+  boolean runningLEDs = true;
+  boolean UPDATING = false;
   
 //Bluetooth
   BluetoothSerial bluetooth; 
   String bluetoothBuffer = "";
   String PIN = "";
   String masterPIN = "11701";
-  
-//Sensor
-  //Current
-    const int currentSens1 = A0;
-    const int mVperAmp = 100; //100 for 20A Module and 66 for 30A Module  
 
-  //Temp & Hum
-    //One dht is used here for internal and one for external
-    #define DHTTYPE DHT11
-    #define DHTPINA 4
-    #define DHTPINB 16
-    DHT dhtA(DHTPINA,DHTTYPE);
-    DHT dhtB(DHTPINB,DHTTYPE);
-  //couple 
-    //uses software spi
-
-    double highTemp = 33;
-    //All thermocoupples share these pins
-    #define MAXCS   23
-    #define MAXCLK  22
-      
-    //Each thermocpule has one of these pins for data
-    #define MAXDOa   27
-    Adafruit_MAX31855 thermocoupleA(MAXCLK, MAXCS, MAXDOa);
-    #define MAXDOb   26
-    Adafruit_MAX31855 thermocoupleB(MAXCLK, MAXCS, MAXDOb);
-    #define MAXDOc   25
-    Adafruit_MAX31855 thermocoupleC(MAXCLK, MAXCS, MAXDOc);
+//Core management
+TaskHandle_t manageH = NULL;
+TaskHandle_t displayLEDsH = NULL;
       
 void setup(){
   
-  //Serial
+   //Serial
     Serial.begin(115200);
     Serial.println();
     Serial.print("["+String(millis())+"] Setup started Version ");
     Serial.println(VERSION);
-
+    
   //EEPROM
-    EEPROM.begin(512);  
-
+    EEPROM.begin(512); 
   //META
-    fanNum = readEEPROMString(20);
-    location = readEEPROMString(300);
+    lightNum = readEEPROMString(20);
     PIN = readEEPROMString(10);
     
   //UI
@@ -97,7 +72,7 @@ void setup(){
     blinkStatusLed(2, 800, 2);
 
   //Bluetooth
-    String bluetoothName = "Soulis #"+fanNum;
+    String bluetoothName = "Light #"+lightNum;
     bluetooth.begin(bluetoothName);
     
   //WiFi
@@ -108,97 +83,131 @@ void setup(){
     WiFi.mode(WIFI_STA);
     WiFi.enableSTA(true);
     connectWiFi();
-         
-  //Sensors
-    dhtA.begin();
-    dhtB.begin();
-    
-  //Controll
-    pinMode(ledSwitch, OUTPUT);
+
+  //LEDs
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.setBrightness(  BRIGHTNESS );
+    SetPinkAndBabyBluePalette();
+    currentP = "2";
+    currentBlending = LINEARBLEND;
+    prevMillis = millis();
     
   //UI
     blinkStatusLed(2, 200, 3);
-    wifiPost("Starting", 0,0,0,0,0);
+    wifiPost("Starting");
     Serial.println("["+String(millis())+"] Setup complete");
+    
+  //Core management
+    xTaskCreatePinnedToCore(
+      manage, /* Function to implement the task */
+      "manage", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      1,  /* Priority of the task */
+      &manageH, //&manage,  /* Task handle. */
+      0); /* Core where the task should run */
+
+    xTaskCreatePinnedToCore(
+      displayLEDs, /* Function to implement the task */
+      "displayLEDs", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      1,  /* Priority of the task */
+      &displayLEDsH,  /* Task handle. */
+      1); /* Core where the task should run */
+ 
 }
 
-void loop(){
+void displayLEDs(void * params){
 
-  String msg = "";
+  while(1){
+      
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+      
+    FillLEDsFromPaletteColors( startIndex);
+    FastLED.show();
+    FastLED.delay(1000 / UPDATES_PER_SECOND);
+    if(UPDATING){
+      vTaskDelete(NULL);
+    }
+  }
+}
 
-  //Bluetooth
-    if (bluetooth.available()){
-      char incoming = bluetooth.read();
-      bluetoothBuffer += incoming;
-      if(bluetoothBuffer.length() < 100){
+
+void manage(void * params){
+
+  
+  while(1){
+    
+    //Bluetooth
+      if (bluetooth.available()){
+        char incoming = bluetooth.read();
+        bluetoothBuffer += incoming;
+        if(bluetoothBuffer.length() < 100){
+          return;
+        }
+      }
+      if(bluetoothBuffer != ""){
+        bluetoothTree(bluetoothBuffer);
+      }
+      bluetoothBuffer = "";
+    
+    //Check/setup wifi before use
+      if(WiFi.status() != 3){ 
+        connectWiFi();
         return;
       }
-    }
-    if(bluetoothBuffer != ""){
-      bluetoothTree(bluetoothBuffer);
-    }
-    bluetoothBuffer = "";
-
-  //TEST
-    Serial.println(wifiGet("/api/"+fanNum));
-      
-  //OTA 
-    String webVersion = jsonParse(wifiGet("/api/units"), "version");
-    if(webVersion != VERSION && webVersion != "null"){  
-      Serial.println("Upgrading to version "+ webVersion+" from " + VERSION);
-      wifiPost("Updating",0,0,0,0,0); 
-      execOTA();
-    }
-    if(webVersion == "null"){
-      Serial.println("ERROR webVersion returned null");
-    }
-
-  //Temp & Hum
-    //DHTs get values
-      double dhtTempA = dhtA.readTemperature();
-      double dhtTempB = dhtB.readTemperature();
-      
-    //Thermocouples
-       //A get value of thermocouple & check if working
-         double thermoTempA = thermocoupleA.readCelsius();
-         if (isnan(thermoTempA)) {
-           Serial.println("[ERROR] could not read thermocouple A");
-           msg += " err_reading_thermocouple_A, ";
-         }
-       //B get value of thermocouple & check if working
-        double thermoTempB = thermocoupleB.readCelsius();
-        if (isnan(thermoTempB)) {
-          Serial.println("[ERROR] could not read thermocouple B");
-          msg += " err_reading_thermocouple_B, ";
-        }
-       //C get value of thermocouple & check if working
-        double thermoTempC = thermocoupleC.readCelsius();
-        if (isnan(thermoTempC)) {
-          Serial.println("[ERROR] could not read thermocouple C");
-          msg += " err_reading_thermocouple_C ";
-        }
-
-    //Check if thermocouples are detecting overheating
-    if(thermoTempA > highTemp || thermoTempB > highTemp || thermoTempC > highTemp){
-      ledsPowered = false;              //Turns lights off
-      msg += " lights_overheated ";     //Tells web lights are over heat
-    }else if(jsonParse(wifiGet("/api/units"), "webState") != "on"){
-      ledsPowered = false;              //Force lights off by web
-      msg += "leds_shut_down_by_web ";  //Tells web lights are turned off by web
-    }else{
-      ledsPowered = true;
-    }
-
-    if(msg == "") msg = "running";
+      String msg = "";
     
-  //WiFi Post
-    wifiPost(msg, thermoTempA, thermoTempB, thermoTempC, dhtTempA, dhtTempB); 
-    if(WiFi.status() != 3){ 
-      connectWiFi();
-      return;
-    }
+    //TEST
+      String cleanedArr = wifiGet("/api/"+lightNum);
+      if(cleanedArr != NULL){
+        Serial.println(cleanedArr);
+        cleanedArr.remove(0,1);
+        cleanedArr.remove(cleanedArr.length()-1, 1);
+        Serial.println(cleanedArr);
+      
     
+        String webP = jsonParse(cleanedArr, "colors");
+        Serial.println(webP);
+        if(webP != NULL && currentP != webP){
+          currentP = webP;
+          Serial.println("changing palette");
+          if(currentP.equals("1")) SetRedAndBlackPalette();
+          if(currentP.equals("2")) SetPinkAndBabyBluePalette();
+        }
+        
+        int webB = jsonParse(cleanedArr, "brightness").toInt();
+        if(webP != NULL && webB != BRIGHTNESS){
+          //Serial.println("Changing brightness");
+          //BRIGHTNESS = webB;
+          //FastLED.setBrightness(BRIGHTNESS);
+        }
+      }
+      
+    //OTA
+      String webVersion = jsonParse(wifiGet("/api/lights"), "version");
+      if(webVersion != NULL && webVersion != "null" && webVersion != VERSION ){  
+        Serial.println("Upgrading to version "+ webVersion+" from " + VERSION);
+        wifiPost("Updating");
+        UPDATING = true;
+        disableCore0WDT();
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+        execOTA();
+      }
+      if(webVersion == "null"){
+        Serial.println("ERROR webVersion returned null");
+      }
+  
+      if(msg == "") msg = "running";
+      
+    //WiFi Post
+      wifiPost(msg);       
+  }
 }
+
+void loop(){vTaskDelete(NULL);}
 
 void blinkStatusLed(int pin, long delayTime, int iter){
   

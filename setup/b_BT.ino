@@ -47,18 +47,6 @@ void bluetoothTree(String command){
       return;
     }
   }
-  if(sectionB == "location"){
-    if(sectionC.length() < 50){
-      location = sectionC;
-      writeEEPROMString(35, location);
-      Serial.print("location set to ");Serial.println(readEEPROMString(35));
-      bluetooth.print("location set to "); bluetooth.println(readEEPROMString(35));
-      return;
-    }else{
-      bluetooth.println("Location cannot be longer than 50 characters");
-      return;
-    }
-  }
   
   bluetooth.println("Invalid command");
   Serial.println("Invalid command");

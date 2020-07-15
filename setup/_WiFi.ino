@@ -48,15 +48,11 @@ String jsonParse(String input, String key){
   return obj[key].as<String>();
 }
 
-void wifiPost(String msg, double thermoA, double thermoB, double thermoC, double dhtTempA, double dhtTempB){
+void wifiPost(String msg){
 
   //Serial.println("["+String(millis())+"] wifiSend started");  
  
-  String postRequest = "fan_num=" + fanNum + "&version=" + VERSION + "&leds_powered=" + "off" + 
-    "&location=" + location + "&msg=" + msg + "&dht_temp_a=" + String(dhtTempA) +
-    "&dht_temp_b=" + String(dhtTempB) + "&thermo_a=" + String(thermoA) + "&thermo_b=" + String(thermoB) +
-    "&thermo_c=" + String(thermoC);
-
+  String postRequest = "light_num=" + lightNum + "&version=" + VERSION + "&leds_powered=" + "off" + "&msg=" + msg;
   HTTPClient http;
   http.begin("http://carterwatts.xyz:3000/api");
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");

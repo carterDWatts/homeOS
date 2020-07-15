@@ -47,6 +47,8 @@ void bluetoothTree(String command){
       return;
     }
   }
+
+  /*
   if(sectionB == "location"){
     if(sectionC.length() < 50){
       location = sectionC;
@@ -59,6 +61,7 @@ void bluetoothTree(String command){
       return;
     }
   }
+  */
   
   bluetooth.println("Invalid command");
   Serial.println("Invalid command");

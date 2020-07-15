@@ -8,8 +8,7 @@
 #include <EEPROM.h>
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
-  String fanNum = "1";
-  String location = "Home";
+  String lightNum = "1";
   const String VERSION = "0";
   const int statusLed = 2;
   
@@ -20,10 +19,9 @@
   String ssid = "ORBI24";
   String password = "jaggedcarrot123";  
   
-  String host = "carterwatts.xyz"; //TODO:update to new website when up
-  
+  String host = "carterwatts.xyz"; //TODO:update to new website when up  
   int port = 3000;//80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
-  String bin = "/connectedSoulis.ino.esp32.bin"; // bin file name with a slash in front.
+  String bin = "/lightControl.ino.esp32.bin"; // bin file name with a slash in front.
 
 //Bluetooth
   BluetoothSerial bluetooth; 
@@ -43,7 +41,7 @@ void setup(){
     EEPROM.begin(512);
 
   //META
-    writeEEPROMString(20, fanNum);
+    writeEEPROMString(20, lightNum);
     writeEEPROMString(10, PIN);
   
   //UI
@@ -51,7 +49,7 @@ void setup(){
     blinkStatusLed(2, 800, 2);
   
   //Bluetooth
-    String bluetoothName = "Soulis #"+fanNum;
+    String bluetoothName = "Light #"+lightNum;
     bluetooth.begin(bluetoothName);
       
   //WiFi
@@ -69,7 +67,7 @@ void setup(){
          
   //UI
     blinkStatusLed(2, 200, 3);
-    wifiPost("Starting", 0,0,0,0,0);   
+    wifiPost("Starting setup software");   
     
   Serial.println("["+String(millis())+"] Setup complete");
 }
@@ -96,11 +94,12 @@ void loop() {
     }
     
   //OTA 
-    String webVersion = jsonParse(wifiGet("/api/units"), "version");
-    Serial.println(wifiGet("/api/units"));
+    String webVersion = jsonParse(wifiGet("/api/lights"), "version");
+    Serial.println(wifiGet("/api/lights"));
     Serial.println("Current web version: "+webVersion);
     if(webVersion != VERSION && webVersion != "null"){  
       Serial.println("Upgrading to version "+ webVersion+" from " + VERSION);
+      wifiPost("Updating to current version");
       execOTA();
     }   
 
