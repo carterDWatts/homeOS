@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.8";
+  const String VERSION = "0.4.2";
   const int ledDataPin = 5;
   const int statusLed = 2;
 
@@ -137,73 +137,71 @@ void displayLEDs(void * params){
 
 void manage(void * params){
 
-  
   while(1){
-    
-    //Bluetooth
-      if (bluetooth.available()){
-        char incoming = bluetooth.read();
-        bluetoothBuffer += incoming;
-        if(bluetoothBuffer.length() < 100){
-          return;
-        }
-      }
-      if(bluetoothBuffer != ""){
-        bluetoothTree(bluetoothBuffer);
-      }
-      bluetoothBuffer = "";
-    
-    //Check/setup wifi before use
-      if(WiFi.status() != 3){ 
-        connectWiFi();
-        return;
-      }
-      String msg = "";
-    
-    //TEST
-      String cleanedArr = wifiGet("/api/"+lightNum);
-      if(cleanedArr != NULL){
-        Serial.println(cleanedArr);
-        cleanedArr.remove(0,1);
-        cleanedArr.remove(cleanedArr.length()-1, 1);
-        Serial.println(cleanedArr);
+    while(1){
       
-    
-        String webP = jsonParse(cleanedArr, "colors");
-        Serial.println(webP);
-        if(webP != NULL && currentP != webP){
-          currentP = webP;
-          Serial.println("changing palette");
-          if(currentP.equals("1")) SetRedAndBlackPalette();
-          if(currentP.equals("2")) SetPinkAndBabyBluePalette();
+      //Bluetooth
+        if (bluetooth.available()){
+          char incoming = bluetooth.read();
+          bluetoothBuffer += incoming;
+          if(bluetoothBuffer.length() < 100){
+            break;
+          }
+        }
+        if(bluetoothBuffer != ""){
+          bluetoothTree(bluetoothBuffer);
+        }
+        bluetoothBuffer = "";
+      
+      //Check/setup wifi before use
+        if(WiFi.status() != 3){ 
+          connectWiFi();
+          break;
+        }
+        String msg = "";
+      
+      //TEST
+        String cleanedArr = wifiGet("/api/"+lightNum);
+        if(cleanedArr != NULL){
+          cleanedArr.remove(0,1);
+          cleanedArr.remove(cleanedArr.length()-1, 1);
+          
+          String webP = jsonParse(cleanedArr, "colors");
+          Serial.println(webP);
+          if(webP != NULL && currentP != webP){
+            currentP = webP;
+            Serial.println("changing palette");
+            if(currentP.equals("1")) SetRedAndBlackPalette();
+            if(currentP.equals("2")) SetPinkAndBabyBluePalette();
+          }
+          
+          int webB = jsonParse(cleanedArr, "brightness").toInt();
+          if(webP != NULL && webB != BRIGHTNESS){
+            //Serial.println("Changing brightness");
+            //BRIGHTNESS = webB;
+            //FastLED.setBrightness(BRIGHTNESS);
+          }
         }
         
-        int webB = jsonParse(cleanedArr, "brightness").toInt();
-        if(webP != NULL && webB != BRIGHTNESS){
-          //Serial.println("Changing brightness");
-          //BRIGHTNESS = webB;
-          //FastLED.setBrightness(BRIGHTNESS);
+      //OTA
+        String webVersion = jsonParse(wifiGet("/api/lights"), "version");
+        if(webVersion != NULL && webVersion != "null" && webVersion != VERSION ){  
+          Serial.println("Upgrading to version "+ webVersion+" from " + VERSION);
+          wifiPost("Updating");
+          UPDATING = true;
+          disableCore0WDT();
+          vTaskDelay(20 / portTICK_PERIOD_MS);
+          execOTA();
         }
-      }
-      
-    //OTA
-      String webVersion = jsonParse(wifiGet("/api/lights"), "version");
-      if(webVersion != NULL && webVersion != "null" && webVersion != VERSION ){  
-        Serial.println("Upgrading to version "+ webVersion+" from " + VERSION);
-        wifiPost("Updating");
-        UPDATING = true;
-        disableCore0WDT();
-        vTaskDelay(20 / portTICK_PERIOD_MS);
-        execOTA();
-      }
-      if(webVersion == "null"){
-        Serial.println("ERROR webVersion returned null");
-      }
-  
-      if(msg == "") msg = "running";
-      
-    //WiFi Post
-      wifiPost(msg);       
+        if(webVersion == "null"){
+          Serial.println("ERROR webVersion returned null");
+        }
+    
+        if(msg == "") msg = "running";
+        
+      //WiFi Post
+        wifiPost(msg);       
+    }
   }
 }
 
