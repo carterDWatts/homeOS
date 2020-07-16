@@ -8,7 +8,7 @@
 #include <EEPROM.h>
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
-  String lightNum = "1";
+  String lightNum = "2";
   const String VERSION = "0";
   const int statusLed = 2;
   

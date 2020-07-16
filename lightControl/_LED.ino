@@ -1,5 +1,3 @@
-
-
 void FillLEDsFromPaletteColors( uint8_t colorIndex){
   
     uint8_t brightness = 255;
@@ -45,4 +43,19 @@ void SetRedAndBlackPalette(){
                                    red, red, red,  black,
                                    red,  red,  red,  black,
                                    red, red, red,  black );
+}
+
+void SetGreenAndYellowPalette(){
+
+    Serial.println("setting to Green and Yellow");
+  
+    CRGB green  = CHSV( HUE_GREEN, 255, 255);
+    CRGB yellow = CHSV( HUE_YELLOW, 255, 255);
+    CRGB black  = CRGB::Black;
+    
+    currentPalette = CRGBPalette16(
+                                   green,  green,  green,  black,
+                                   yellow, yellow, yellow,  black,
+                                   green,  green,  green,  black,
+                                   yellow, yellow, yellow,  black );
 }

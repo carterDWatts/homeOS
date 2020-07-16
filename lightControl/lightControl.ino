@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.4.2";
+  const String VERSION = "0.4.5.1";
   const int ledDataPin = 5;
   const int statusLed = 2;
 
@@ -16,8 +16,8 @@
 
 //LEDS
   int ledsPowered = 1;  
-  #define LED_PIN     13
-  #define NUM_LEDS    79
+  #define LED_PIN     27
+  #define NUM_LEDS    180
   int BRIGHTNESS = 65;
   #define LED_TYPE    WS2811
   #define COLOR_ORDER GRB
@@ -50,8 +50,8 @@
   String masterPIN = "11701";
 
 //Core management
-TaskHandle_t manageH = NULL;
-TaskHandle_t displayLEDsH = NULL;
+  TaskHandle_t manageH = NULL;
+  TaskHandle_t displayLEDsH = NULL;
       
 void setup(){
   
@@ -173,6 +173,8 @@ void manage(void * params){
             Serial.println("changing palette");
             if(currentP.equals("1")) SetRedAndBlackPalette();
             if(currentP.equals("2")) SetPinkAndBabyBluePalette();
+            if(currentP.equals("3")) SetGreenAndYellowPalette();
+            if(currentP.equals("4")) SetRandomPalette();
           }
           
           int webB = jsonParse(cleanedArr, "brightness").toInt();
