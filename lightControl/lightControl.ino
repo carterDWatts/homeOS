@@ -57,9 +57,9 @@ void setup(){
   
    //Serial
     Serial.begin(115200);
-    Serial.println();
-    Serial.print("["+String(millis())+"] Setup started Version ");
-    Serial.println(VERSION);
+    logSBln(" ");
+    logSB("["+String(millis())+"] Setup started Version ");
+    logSBln(VERSION);
     
   //EEPROM
     EEPROM.begin(512); 
@@ -95,7 +95,7 @@ void setup(){
   //UI
     blinkStatusLed(2, 200, 3);
     wifiPost("Starting");
-    Serial.println("["+String(millis())+"] Setup complete");
+    logSBln("["+String(millis())+"] Setup complete");
     
   //Core management
     xTaskCreatePinnedToCore(
@@ -167,10 +167,10 @@ void manage(void * params){
           cleanedArr.remove(cleanedArr.length()-1, 1);
           
           String webP = jsonParse(cleanedArr, "colors");
-          Serial.println(webP);
+          logSBln(webP);
           if(webP != NULL && currentP != webP){
             currentP = webP;
-            Serial.println("changing palette");
+            logSBln("changing palette");
             if(currentP.equals("1")) SetRedAndBlackPalette();
             if(currentP.equals("2")) SetPinkAndBabyBluePalette();
             if(currentP.equals("3")) SetGreenAndYellowPalette();
@@ -179,7 +179,7 @@ void manage(void * params){
           
           int webB = jsonParse(cleanedArr, "brightness").toInt();
           if(webP != NULL && webB != BRIGHTNESS){
-            //Serial.println("Changing brightness");
+            //logSBln("Changing brightness");
             //BRIGHTNESS = webB;
             //FastLED.setBrightness(BRIGHTNESS);
           }
@@ -188,7 +188,7 @@ void manage(void * params){
       //OTA
         String webVersion = jsonParse(wifiGet("/api/lights"), "version");
         if(webVersion != NULL && webVersion != "null" && webVersion != VERSION ){  
-          Serial.println("Upgrading to version "+ webVersion+" from " + VERSION);
+          logSBln("Upgrading to version "+ webVersion+" from " + VERSION);
           wifiPost("Updating");
           UPDATING = true;
           disableCore0WDT();
@@ -196,7 +196,7 @@ void manage(void * params){
           execOTA();
         }
         if(webVersion == "null"){
-          Serial.println("ERROR webVersion returned null");
+          logSBln("ERROR webVersion returned null");
         }
     
         if(msg == "") msg = "running";
@@ -217,4 +217,14 @@ void blinkStatusLed(int pin, long delayTime, int iter){
     digitalWrite(pin, LOW);
     delay(delayTime);
   }
+}
+
+void logSB(String line){
+  Serial.print(line);
+  bluetooth.print(line);
+}
+
+void logSBln(String line){
+  Serial.println(line);
+  bluetooth.println(line);
 }

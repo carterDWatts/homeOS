@@ -9,12 +9,12 @@ void execOTA() {
   long contentLength = 0;
   bool isValidContentType = false;
   
-  Serial.println("Connecting to: " + String(host));
+  logSBln("Connecting to: " + String(host));
     
   if (client.connect(host.c_str(), port)) { // Connect to host
     // Connection Succeed.
     // Fecthing the bin
-    Serial.println("Fetching Bin: " + String(bin));
+    logSBln("Fetching Bin: " + String(bin));
 
     // Get the contents of the bin file
     client.print(String("GET ") + bin + " HTTP/1.1\r\n" +
@@ -23,7 +23,7 @@ void execOTA() {
                  "Connection: close\r\n\r\n");
 
     // Check what is being sent
-    //    Serial.print(String("GET ") + bin + " HTTP/1.1\r\n" +
+    //    logSB(String("GET ") + bin + " HTTP/1.1\r\n" +
     //                 "Host: " + host + "\r\n" +
     //                 "Cache-Control: no-cache\r\n" +
     //                 "Connection: close\r\n\r\n");
@@ -31,7 +31,7 @@ void execOTA() {
     unsigned long timeout = millis();
     while (client.available() == 0) {
       if (millis() - timeout > 5000) {
-        Serial.println("client timed out");
+        logSBln("client timed out");
         client.stop();
         return;
       }
@@ -75,7 +75,7 @@ void execOTA() {
       // else break and Exit Update
       if (line.startsWith("HTTP/1.1")) {
         if (line.indexOf("200") < 0) {
-          Serial.println("irecieved non 200 status code from server - exiting OTA update.");
+          logSBln("irecieved non 200 status code from server - exiting OTA update.");
           //TODO: check if this freezes - client.stop();
           break;
         }
@@ -85,26 +85,26 @@ void execOTA() {
       // Start with content length
       if (line.startsWith("Content-Length: ")) {
         contentLength = atol((getHeaderValue(line, "Content-Length: ")).c_str());
-        Serial.println("Got " + String(contentLength) + " bytes from server");
+        logSBln("Got " + String(contentLength) + " bytes from server");
       }
 
       // Next, the content type
       if (line.startsWith("Content-Type: ")) {
         String contentType = getHeaderValue(line, "Content-Type: ");
-        Serial.println("Got " + contentType + " payload.");
+        logSBln("Got " + contentType + " payload.");
         if (contentType == "application/octet-stream") {
           isValidContentType = true;
         }
       }
     }
   } else {
-    Serial.println("Connection to " + String(host) + " failed");
+    logSBln("Connection to " + String(host) + " failed");
     // retry??
     // execOTA();
   }
 
   // Check what is the contentLength and if content type is `application/octet-stream`
-  Serial.println("contentLength : " + String(contentLength) + ", isValidContentType : " + String(isValidContentType));
+  logSBln("contentLength : " + String(contentLength) + ", isValidContentType : " + String(isValidContentType));
 
   // check contentLength and content type
   if (contentLength && isValidContentType) {
@@ -113,39 +113,39 @@ void execOTA() {
 
     // If yes, begin
     if (canBegin) {
-      Serial.println("Begin OTA. Mayy take 2 - 5 mins to complete");
+      logSBln("Begin OTA. Mayy take 2 - 5 mins to complete");
       // No activity would appear on the Serial monitor
       // So be patient. This may take 2 - 5mins to complete
       size_t written = Update.writeStream(client);
 
       if (written == contentLength) {
-        Serial.println("Wrote : " + String(written) + " successfully");
+        logSBln("Wrote : " + String(written) + " successfully");
       } else {
-        Serial.println("Wrote only : " + String(written) + "/" + String(contentLength) + "" );
+        logSBln("Wrote only : " + String(written) + "/" + String(contentLength) + "" );
         // retry??
         // execOTA();
       }
 
       if (Update.end()) {
-        Serial.println("OTA finished");
+        logSBln("OTA finished");
         if (Update.isFinished()) {
-          Serial.println("Update successfully completed. Rebooting.");
+          logSBln("Update successfully completed. Rebooting.");
           ESP.restart();
         } else {
-          Serial.println("Update not complete");
+          logSBln("Update not complete");
         }
       } else {
-        Serial.println("Error Occurred. Error #: " + String(Update.getError()));
+        logSBln("Error Occurred. Error #: " + String(Update.getError()));
       }
     } else {
       // not enough space to begin OTA
       // Understand the partitions and
       // space availability
-      Serial.println("Not enough space to begin OTA");
+      logSBln("Not enough space to begin OTA");
       client.flush();
     }
   } else {
-    Serial.println("There was no content in the response");
+    logSBln("There was no content in the response");
     client.stop();
     return;
   }

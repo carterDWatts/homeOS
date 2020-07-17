@@ -17,7 +17,7 @@ void SetRandomPalette(){
 
 void SetPinkAndBabyBluePalette(){
 
-    Serial.println("setting to Pink and Baby Blue");
+    logSBln("setting to Pink and Baby Blue");
     
     CRGB pink  = CHSV( HUE_PINK, 255, 255);
     CRGB blue  = CHSV( HUE_BLUE, 255, 255);
@@ -33,7 +33,7 @@ void SetPinkAndBabyBluePalette(){
 
 void SetRedAndBlackPalette(){
   
-    Serial.println("setting to Red and Black");
+    logSBln("setting to Red and Black");
   
     CRGB red  = CHSV( HUE_RED, 255, 255);
     CRGB black  = CRGB::Black;
@@ -47,7 +47,7 @@ void SetRedAndBlackPalette(){
 
 void SetGreenAndYellowPalette(){
 
-    Serial.println("setting to Green and Yellow");
+    logSBln("setting to Green and Yellow");
   
     CRGB green  = CHSV( HUE_GREEN, 255, 255);
     CRGB yellow = CHSV( HUE_YELLOW, 255, 255);

@@ -1,11 +1,11 @@
 int connectWiFi(){
 
-  Serial.print("["+String(millis())+"] Connecting to ["); Serial.print(ssid); Serial.print("] with passwd ["); Serial.print(password); Serial.println("]");
+  logSB("["+String(millis())+"] Connecting to ["); logSB(ssid); logSB("] with passwd ["); logSB(password); logSBln("]");
   WiFi.begin(ssid.c_str(), password.c_str());
  
   delay(5000);
-  Serial.print("["+String(millis())+"] Wifi stats code: ");
-  Serial.println(WiFi.status());
+  logSB("["+String(millis())+"] Wifi stats code: ");
+  logSBln( (String) WiFi.status());
   
   if(WiFi.status() == 6){ 
     blinkStatusLed(2, 100, 2);
@@ -31,9 +31,9 @@ String wifiGet(String route){
   
   if(http.GET()){
     getPayload = http.getString();
-    //Serial.print("Recieved: ");Serial.println(getPayload);
+    //logSB("Recieved: ");logSBln(getPayload);
   }else{
-    Serial.println("Error on HTTP GET request");
+    logSBln("Error on HTTP GET request");
     getPayload = "-1";
   }
 
@@ -50,7 +50,7 @@ String jsonParse(String input, String key){
 
 void wifiPost(String msg){
 
-  //Serial.println("["+String(millis())+"] wifiSend started"); 
+  //logSBln("["+String(millis())+"] wifiSend started"); 
   
   String postRequest = "light_num=" + lightNum;
     postRequest += "&version=" + String(VERSION);
@@ -64,9 +64,9 @@ void wifiPost(String msg){
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   if(http.POST(postRequest) > 0){
     String response = http.getString();
-    Serial.print("Response: ");Serial.println(response);
+    logSB("Response: ");logSBln(response);
   }else{
-    Serial.println("Error sending POST request");
+    logSBln("Error sending POST request");
   }
 
 }

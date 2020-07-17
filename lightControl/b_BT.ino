@@ -13,16 +13,16 @@ void bluetoothTree(String command){
   String sectionB = command.substring(index1+1, index2);  
   String sectionC = command.substring(index2+1);
   
-  Serial.println(sectionA);
-  Serial.println(sectionB);
-  Serial.println(sectionC);
+  logSBln(sectionA);
+  logSBln(sectionB);
+  logSBln(sectionC);
   
-  Serial.print("BT recieved: "); Serial.println(command);
+  logSB("BT recieved: "); logSBln(command);
   
   if(sectionB == "ssid"){
     ssid = sectionC;
     writeEEPROMString(200, ssid);
-    Serial.print("ssid set to ");Serial.println(readEEPROMString(200));
+    logSB("ssid set to ");logSBln(readEEPROMString(200));
     bluetooth.print("ssid set to ");bluetooth.println(readEEPROMString(200));
     connectWiFi();
     return;
@@ -30,7 +30,7 @@ void bluetoothTree(String command){
   if(sectionB == "passwd"){
     password = sectionC;
     writeEEPROMString(100, password);
-    Serial.print("password set to ");Serial.println(readEEPROMString(100));
+    logSB("password set to ");logSBln(readEEPROMString(100));
     bluetooth.print("password set to ");bluetooth.println(readEEPROMString(100));
     connectWiFi();
     return;
@@ -39,11 +39,10 @@ void bluetoothTree(String command){
     if(sectionC.length() == 5){
       PIN = sectionC;
       writeEEPROMString(10, PIN);
-      Serial.print("PIN set to ");Serial.println(readEEPROMString(10));
+      logSB("PIN set to ");logSBln(readEEPROMString(10));
       bluetooth.print("PIN set to "); bluetooth.println(readEEPROMString(10));
       return;
     }else{
-      bluetooth.println("Pin must be 5 chars");
       return;
     }
   }
@@ -53,7 +52,7 @@ void bluetoothTree(String command){
     if(sectionC.length() < 50){
       location = sectionC;
       writeEEPROMString(300, location);
-      Serial.print("location set to ");Serial.println(readEEPROMString(300));
+      logSB("location set to ");logSBln(readEEPROMString(300));
       bluetooth.print("location set to "); bluetooth.println(readEEPROMString(300));
       return;
     }else{
@@ -64,7 +63,7 @@ void bluetoothTree(String command){
   */
   
   bluetooth.println("Invalid command");
-  Serial.println("Invalid command");
+  logSBln("Invalid command");
   return;
   
 }

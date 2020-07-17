@@ -1,4 +1,4 @@
-void writeEEPROMString(char add,String data){
+ void writeEEPROMString(char add,String data){
   int _size = data.length();
   int i;
   for(i=0;i<_size;i++)  {
