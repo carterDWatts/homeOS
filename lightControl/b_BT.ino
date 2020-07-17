@@ -48,38 +48,32 @@ void bluetoothTree(String command){
   }
 
   if(sectionB == "color"){
-    if(sectionC.length() == 5){
-      String btPal = sectionC;
+    
+    String btPal = sectionC;
+    logSBln("Changing palette");
 
-      if(btPal.equals("1")){
-        SetRedAndBlackPalette();
-        logSBln("BT set color to 1");
-        wifiPostColor("Setting to color scheme 1", btPal);
-      }
-      if(btPal.equals("2")){
-        SetPinkAndBabyBluePalette();
-        logSBln("BT set color to 2");
-        wifiPostColor("Setting to color scheme 2", btPal);
-      }
-      if(btPal.equals("3")){
-        SetGreenAndYellowPalette();
-        logSBln("BT set color to 3");
-        wifiPostColor("Setting to color scheme 3", btPal);
-      }
-      if(btPal.equals("4")){
-        SetRandomPalette();
-        logSBln("BT set color to 4");
-        wifiPostColor("Setting to color scheme 4", btPal);
-      }
-
-      bluetooth.print("PIN set to "); bluetooth.println(readEEPROMString(10));
-      return;
-    }else{
-      return;
+    if(btPal.equals("1")){
+      SetRedAndBlackPalette();
+      logSBln("BT set color to 1");
+      wifiPostColor("Setting to color scheme 1", btPal);
+    }
+    if(btPal.equals("2")){
+      SetPinkAndBabyBluePalette();
+      logSBln("BT set color to 2");
+      wifiPostColor("Setting to color scheme 2", btPal);
+    }
+    if(btPal.equals("3")){
+      SetGreenAndYellowPalette();
+      logSBln("BT set color to 3");
+      wifiPostColor("Setting to color scheme 3", btPal);
+    }
+    if(btPal.equals("4")){
+      SetRandomPalette();
+      logSBln("BT set color to 4");
+      wifiPostColor("Setting to color scheme 4", btPal);
     }
   }
-            logSBln("changing palette");
-            
+                 
           
   /*
   if(sectionB == "location"){
