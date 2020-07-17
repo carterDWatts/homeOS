@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.4.7";
+  const String VERSION = "0.4.7.1";
   const int ledDataPin = 5;
   const int statusLed = 2;
 

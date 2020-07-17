@@ -47,7 +47,7 @@ void bluetoothTree(String command){
     }
   }
 
-  if(sectionB == "PIN"){
+  if(sectionB == "color"){
     if(sectionC.length() == 5){
       String btPal = sectionC;
 
