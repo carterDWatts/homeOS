@@ -70,3 +70,24 @@ void wifiPost(String msg){
   }
 
 }
+
+void wifiPostColor(String msg, String color){
+
+  //logSBln("["+String(millis())+"] wifiSend started"); 
+  
+  String postRequest = "light_num=" + lightNum;
+    postRequest += "&version=" + String(VERSION);
+    postRequest += "&colors=" + color;
+    postRequest += "&msg=" + msg;
+
+  HTTPClient http;
+  http.begin("http://carterwatts.xyz:3000/api");
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  if(http.POST(postRequest) > 0){
+    String response = http.getString();
+    logSB("Response: ");logSBln(response);
+  }else{
+    logSBln("Error sending POST request");
+  }
+
+}

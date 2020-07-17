@@ -47,6 +47,36 @@ void bluetoothTree(String command){
     }
   }
 
+  if(sectionB == "PIN"){
+    if(sectionC.length() == 5){
+      String btPal = sectionC;
+
+      if(btPal.equals("1")){
+        SetRedAndBlackPalette();
+        wifiPostColor("Setting to color scheme 1", btPal);
+      }
+      if(btPal.equals("2")){
+        SetPinkAndBabyBluePalette();
+        wifiPostColor("Setting to color scheme 2", btPal);
+      }
+      if(btPal.equals("3")){
+        SetGreenAndYellowPalette();
+        wifiPostColor("Setting to color scheme 3", btPal);
+      }
+      if(btPal.equals("4")){
+        SetRandomPalette();
+        wifiPostColor("Setting to color scheme 4", btPal);
+      }
+
+      bluetooth.print("PIN set to "); bluetooth.println(readEEPROMString(10));
+      return;
+    }else{
+      return;
+    }
+  }
+            logSBln("changing palette");
+            
+          
   /*
   if(sectionB == "location"){
     if(sectionC.length() < 50){
