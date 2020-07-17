@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.4.7.3";
+  const String VERSION = "0.4.7.4";
   const int ledDataPin = 5;
   const int statusLed = 2;
 
@@ -17,7 +17,7 @@
 //LEDS
   int ledsPowered = 1;  
   #define LED_PIN     27
-  #define NUM_LEDS    180
+  #define NUM_LEDS    120 //180
   int BRIGHTNESS = 65;
   #define LED_TYPE    WS2811
   #define COLOR_ORDER GRB
