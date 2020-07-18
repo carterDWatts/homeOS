@@ -1,25 +1,46 @@
 void FillLEDsFromPaletteColors( uint8_t colorIndex){
-  
-    uint8_t brightness = 255;    
-    for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-        colorIndex += 3;
-    }
+
+  logSBln("Running FillLEDsFromPaletteColors");
+
+  uint8_t brightness = 255;    
+  for( int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+      colorIndex += 3;
+  }
 }
 
 void pulseLEDs(uint8_t colorIndex){
 
+  logSBln("Running fade");
+  
   uint8_t brightness = 0;
+  int MAX = 150, MIN = 0;
   for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CHSV( HUE_RED, 255, 255); //ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+    switch(fadeColor){
+        case 5:
+          leds[i] = CHSV( HUE_RED, 255, 255);
+          break;
+        case 6:
+          leds[i] = CHSV( HUE_PINK, 255, 255);
+          break;
+        case 7:
+          leds[i] = CRGB( 105, 255, 255); //Baby Blue
+          break;
+        case 8:
+          leds[i] = CHSV( HUE_YELLOW, 255, 255);
+          break;
+        case 9:
+          leds[i] = CHSV( HUE_GREEN, 255, 255);
+          break;
+    }
   }
 
-  for(int i = 0; i < 255; i++){
+  for(int i = MIN; i < MAX; i++){
     FastLED.setBrightness(i); 
     FastLED.show();
     delay(10);
   }
-  for(int i = 255; i > 0; i--){
+  for(int i = MAX; i > MIN; i--){
     FastLED.setBrightness(i);
     FastLED.show();
     delay(10);

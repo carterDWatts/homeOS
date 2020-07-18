@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.5.0.5";
+  const String VERSION = "0.5.1.0";
   const int ledDataPin = 5;
   const int statusLed = 2;
 
@@ -18,7 +18,7 @@
   int ledsPowered = 1;  
   #define LED_PIN     27
   #define NUM_LEDS    180 //180
-  int BRIGHTNESS = 65;
+  int BRIGHTNESS = 0;
   #define LED_TYPE    WS2811
   #define COLOR_ORDER GRB
   CRGB leds[NUM_LEDS];
@@ -32,6 +32,8 @@
   extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
   unsigned long prevMillis;
   String currentP;
+  int fadeColor;
+  
 //WiFi  
   WiFiClient client;
   String ssid = "";
@@ -63,6 +65,7 @@ void setup(){
     
   //EEPROM
     EEPROM.begin(512); 
+    
   //META
     lightNum = readEEPROMString(20);
     PIN = readEEPROMString(10);
@@ -74,7 +77,21 @@ void setup(){
   //Bluetooth
     String bluetoothName = "Light #"+lightNum;
     bluetooth.begin(bluetoothName);
-    
+
+  //LEDs
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.setBrightness(BRIGHTNESS);
+    for(int i = 0; i < NUM_LEDS; i++){
+      leds[i] = CRGB::Black;
+    }
+    FastLED.show();
+        
+    currentBlending = LINEARBLEND;
+
+    SetPinkAndBabyBluePalette();
+    currentP = "2";
+    fadeColor = 5; //Default fade color is red
+        
   //WiFi
     ssid = readEEPROMString(200);
     password = readEEPROMString(100);
@@ -84,14 +101,6 @@ void setup(){
     WiFi.enableSTA(true);
     connectWiFi();
 
-  //LEDs
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-    FastLED.setBrightness(  BRIGHTNESS );
-    SetPinkAndBabyBluePalette();
-    currentP = "2";
-    currentBlending = LINEARBLEND;
-    prevMillis = millis();
-    
   //UI
     blinkStatusLed(2, 200, 3);
     wifiPost("Starting");
@@ -124,14 +133,23 @@ void displayLEDs(void * params){
       
     static uint8_t startIndex = 0;
     startIndex = startIndex + 1; /* motion speed */
-      
-    pulseLEDs(startIndex);
-
-    /*
-    FillLEDsFromPaletteColors(startIndex);
-    FastLED.show();
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
-    */
+    
+    int palInt = currentP.toInt();
+    logSB("palInt: ");logSBln((String)palInt);
+    
+    if(palInt >= 5 && palInt <= 9){
+      logSBln("Fade");
+      pulseLEDs(startIndex);
+    }
+    
+    if(palInt <= 4 && palInt > 0){
+      logSBln("Snake");
+      BRIGHTNESS = 200;
+      FastLED.setBrightness(BRIGHTNESS);
+      FillLEDsFromPaletteColors(startIndex);
+      FastLED.show();
+      FastLED.delay(1000 / UPDATES_PER_SECOND);
+    }
     
     if(UPDATING){
       vTaskDelete(NULL);
@@ -179,7 +197,12 @@ void manage(void * params){
             if(currentP.equals("1")) SetRedAndBlackPalette();
             if(currentP.equals("2")) SetPinkAndBabyBluePalette();
             if(currentP.equals("3")) SetGreenAndYellowPalette();
-            if(currentP.equals("4")) SetRandomPalette();
+            if(currentP.equals("4")) SetRandomPalette();            
+            if(currentP.equals("5")) fadeColor = 5; //Red         
+            if(currentP.equals("6")) fadeColor = 6; //Pink    
+            if(currentP.equals("7")) fadeColor = 7; //Blue                
+            if(currentP.equals("8")) fadeColor = 8; //Yellow  
+            if(currentP.equals("9")) fadeColor = 9; //Green        
           }
           
           int webB = jsonParse(cleanedArr, "brightness").toInt();
