@@ -1,11 +1,26 @@
 void FillLEDsFromPaletteColors( uint8_t colorIndex){
   
-    uint8_t brightness = 255;
-    
+    uint8_t brightness = 255;    
     for( int i = 0; i < NUM_LEDS; i++) {
         leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
         colorIndex += 3;
     }
+}
+
+void pulseLEDs(uint8_t colorIndex){
+
+  uint8_t brightness = 0;
+  for( int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+  }
+
+  for(int i = 0; i < 255; i++){
+    FastLED.setBrightness(i); 
+  }
+  for(int i = 255; i > 0; i--){
+    FastLED.setBrightness(i);
+  }
+  
 }
 
 void SetRandomPalette(){
