@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.5.2.0";
+  const String VERSION = "0.5.2.1";
   const int ledDataPin = 5;
   const int statusLed = 2;
 
@@ -116,6 +116,7 @@ void setup(){
       &manageH, //&manage,  /* Task handle. */
       0); /* Core where the task should run */
 
+    delay(250);
     xTaskCreatePinnedToCore(
       displayLEDs, /* Function to implement the task */
       "displayLEDs", /* Name of the task */
@@ -128,7 +129,7 @@ void setup(){
 }
 
 void displayLEDs(void * params){
-
+  boolean firstSnake = true;
   while(1){
       
     static uint8_t startIndex = 0;
@@ -140,11 +141,24 @@ void displayLEDs(void * params){
     if(palInt >= 5 && palInt <= 9){
       logSBln("Fade");
       pulseLEDs(startIndex);
+      firstSnake = true;
     }
-    
+
+    int snakeBrightness = 125;
     if(palInt <= 4 && palInt > 0){
+      if(firstSnake){
+        for( int i = 0; i < NUM_LEDS; i++) {
+          leds[i] = CHSV( HUE_PURPLE, 255, 255);
+        }
+        for(int i = 0; i < snakeBrightness; i++){
+          FastLED.setBrightness(i); 
+          FastLED.show();
+          delay(10);
+        }
+        firstSnake = false;
+      }
       logSBln("Snake");
-      BRIGHTNESS = 200;
+      BRIGHTNESS = snakeBrightness;
       FastLED.setBrightness(BRIGHTNESS);
       FillLEDsFromPaletteColors(startIndex);
       FastLED.show();
@@ -152,6 +166,9 @@ void displayLEDs(void * params){
     }
     
     if(UPDATING){
+      
+      FastLED.setBrightness(0);      
+      FastLED.show();
       vTaskDelete(NULL);
     }
   }
