@@ -17,10 +17,12 @@ void pulseLEDs(uint8_t colorIndex){
   for(int i = 0; i < 255; i++){
     FastLED.setBrightness(i); 
     FastLED.show();
+    delay(10);
   }
   for(int i = 255; i > 0; i--){
     FastLED.setBrightness(i);
     FastLED.show();
+    delay(10);
   }
   
 }
