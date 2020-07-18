@@ -14,7 +14,7 @@ void pulseLEDs(uint8_t colorIndex){
   logSBln("Running fade");
   
   uint8_t brightness = 0;
-  int MAX = 150, MIN = 0;
+  int MAX = 125, MIN = 0;
   for( int i = 0; i < NUM_LEDS; i++) {
     switch(fadeColor){
         case 5:
