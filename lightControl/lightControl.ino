@@ -8,7 +8,7 @@
 
 //Meta - TODO: UPDATE FOR EVERY NEW UNIT - ~~~~~~~~~~~~~ NOTICE ~
   String lightNum = "";
-  const String VERSION = "0.5.0.1";
+  const String VERSION = "0.5.0.2";
   const int ledDataPin = 5;
   const int statusLed = 2;
 
@@ -125,12 +125,12 @@ void displayLEDs(void * params){
     static uint8_t startIndex = 0;
     startIndex = startIndex + 1; /* motion speed */
       
-    pulseLEDs(startIndex);
+    //pulseLEDs(startIndex);
 
-    /*FillLEDsFromPaletteColors(startIndex);
+    FillLEDsFromPaletteColors(startIndex);
     FastLED.show();
     FastLED.delay(1000 / UPDATES_PER_SECOND);
-    */
+    
     
     if(UPDATING){
       vTaskDelete(NULL);
